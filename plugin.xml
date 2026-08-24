@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        id="cordova-plugin-turnstile"
+        version="1.2.1">
+    <name>Cordova Turnstile</name>
+    <description>Runs Cloudflare Turnstile in a secure Android WebView dialog without leaving the Cordova screen.</description>
+    <author>Andrés Zsögön</author>
+    <license>MIT</license>
+    <keywords>cordova,android,turnstile,cloudflare,captcha,verification,security</keywords>
+    <repo>https://github.com/andreszs/cordova-plugin-turnstile</repo>
+    <issue>https://github.com/andreszs/cordova-plugin-turnstile/issues</issue>
+
+    <engines>
+        <engine name="cordova" version=">=11.0.0" />
+        <engine name="cordova-android" version=">=11.0.0" />
+    </engines>
+
+    <js-module src="www/Turnstile.js" name="Turnstile">
+        <clobbers target="cordova.plugins.turnstile" />
+    </js-module>
+
+    <platform name="android">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="TurnstilePlugin">
+                <param name="android-package" value="com.cordova.turnstile.TurnstilePlugin" />
+            </feature>
+        </config-file>
+
+        <source-file src="src/android/TurnstilePlugin.java"
+                     target-dir="src/com/cordova/turnstile" />
+        <resource-file src="src/android/res/drawable/turnstile_cloudflare.xml"
+                       target="res/drawable/turnstile_cloudflare.xml" />
+    </platform>
+</plugin>
