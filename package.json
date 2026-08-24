@@ -30,6 +30,7 @@
   "author": "Andrés Zsögön",
   "files": [
     "plugin.xml",
+    "server/",
     "src/",
     "www/"
   ],

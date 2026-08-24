@@ -24,6 +24,19 @@ When the package is available from npm, it can also be installed with:
 cordova plugin add cordova-plugin-turnstile
 ```
 
+## Host the verification page
+
+The plugin does not send challenges through a service operated by this project. Each application must host its own HTTPS page that renders Cloudflare Turnstile.
+
+1. Download [`server/turnstile.php`](server/turnstile.php).
+2. Replace `YOUR_TURNSTILE_SITE_KEY` with the public site key from your Cloudflare Turnstile widget.
+3. Upload the file to a server whose hostname is allowed by that widget.
+4. Pass the resulting HTTPS URL and an application-specific action to `verify`.
+
+For example, if the file is available at `https://example.com/turnstile.php`, use `https://example.com/turnstile.php?action=register` with the action `register`.
+
+The supplied page contains no secret key and performs no server-side token validation. Your Turnstile secret key must remain in the backend endpoint that accepts the protected application request.
+
 ## Usage
 
 Call `verify` with the URL of your HTTPS Turnstile page and the expected action. The URL must contain an `action` query parameter whose value exactly matches the `action` option.
