@@ -51,7 +51,7 @@ $env:TURNSTILE_EXPECTED_ACTION = 'register'
 
 ## PHP
 
-[`php/validate-turnstile.php`](php/validate-turnstile.php) is a dependency-free PHP endpoint. It requires the cURL extension.
+[`php/validate-turnstile.php`](php/validate-turnstile.php) is a dependency-free endpoint compatible with PHP 5.3 or later. It requires the cURL and JSON extensions.
 
 For local development, after setting the environment variables:
 
@@ -59,7 +59,7 @@ For local development, after setting the environment variables:
 php -S 127.0.0.1:8080 -t php
 ```
 
-Send protected requests to `http://127.0.0.1:8080/validate-turnstile.php`. In production, run it through a maintained PHP runtime and web server over HTTPS.
+Send protected requests to `http://127.0.0.1:8080/validate-turnstile.php`. Syntax compatibility does not make obsolete PHP releases safe: in production, use a currently maintained PHP runtime and web server over HTTPS.
 
 ## Node.js
 
