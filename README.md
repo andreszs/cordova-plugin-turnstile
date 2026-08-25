@@ -443,7 +443,5 @@ The Cordova demo source files and its precompiled test APK are available in the 
 The source contains no preconfigured endpoint URLs or Turnstile keys. Developers provide separate challenge and backend URLs when building the app. The [precompiled Android APK](https://github.com/andreszs/cordova-plugin-demos/raw/main/com.andreszs.turnstile.demo/com.andreszs.turnstile.demo.apk) uses a public demo-only service that combines both routes for immediate testing; production applications should preserve the separation documented above.
 
 <p align="center">
-  <img src="screenshots/android/turnstile-demo-initial.png" width="280" alt="Turnstile demo ready on a Samsung Galaxy S7">
-  <img src="screenshots/android/turnstile-demo-challenge.png" width="280" alt="Cloudflare Turnstile challenge on a Samsung Galaxy S7">
-  <img src="screenshots/android/turnstile-demo-validation.png" width="280" alt="Successful server-side validation on a Samsung Galaxy S7">
+  <img src="screenshots/android/turnstile-demo-collage.png" width="960" alt="Turnstile demo ready, challenge, and successful validation on a Samsung Galaxy S7">
 </p>
