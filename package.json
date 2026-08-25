@@ -30,7 +30,13 @@
   "author": "Andrés Zsögön",
   "files": [
     "plugin.xml",
-    "server/",
+    "server/README.md",
+    "server/turnstile.php",
+    "server/node/package.json",
+    "server/node/server.js",
+    "server/php/validate-turnstile.php",
+    "server/python/app.py",
+    "server/python/requirements.txt",
     "src/",
     "www/"
   ],

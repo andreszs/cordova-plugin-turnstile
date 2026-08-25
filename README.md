@@ -9,6 +9,10 @@ The host application provides an HTTPS page that renders the Turnstile widget. D
 - Android
 - Cordova 11 or later
 - cordova-android 11 or later
+- An up-to-date Android System WebView or Chrome installation
+- PHP 7.0 or later for the supplied challenge page
+
+The optional backend examples have their own runtime requirements: PHP 5.3 or later with cURL and JSON, Node.js 22 or later, or Python 3.11 or later. See [`server/README.md`](server/README.md).
 
 ## Installation
 
@@ -50,13 +54,15 @@ This plugin does not provide or depend on a shared verification service. The dev
 8. From that backend endpoint, send the token and secret key to Cloudflare's [Siteverify API](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/). Optionally include the user's remote IP when it is available and trustworthy.
 9. Reject the protected request unless Siteverify returns `success: true` and the response contains the hostname and action expected for that operation. Use the official [Siteverify response and error reference](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/) and fail closed on network errors, invalid JSON, expired tokens, or duplicate tokens.
 10. Use the [Apache Cordova CLI](https://cordova.apache.org/docs/en/latest/reference/cordova-cli/) to add Android and install this plugin from [GitHub](https://github.com/andreszs/cordova-plugin-turnstile) or npm. Use Cordova 11 and cordova-android 11 or later.
-11. Wait for Cordova's [`deviceready` event](https://cordova.apache.org/docs/en/latest/cordova/events/events.html#deviceready) before accessing `cordova.plugins.turnstile`.
-12. Call [`cordova.plugins.turnstile.verify()`](#usage) with the full HTTPS page URL and the expected action. The URL's `action` query parameter must exactly match the `action` option.
-13. In the success callback, send the returned token and protected request data to your backend immediately. A local success callback alone does not complete verification.
-14. In the error callback, handle the plugin's [documented error codes](#error-codes), consult Cloudflare's [client-side error reference](https://developers.cloudflare.com/turnstile/troubleshooting/client-side-errors/error-codes/) when necessary, and let the user retry when appropriate. Do not silently bypass verification after an error.
-15. Use [`cancel()`](#cancel-an-active-verification) when the application needs to stop an active challenge. If the [optional badge](#optional-badge) is used, call `showBadge()` only where it is relevant and `hideBadge()` when leaving that screen.
-16. Follow Cloudflare's [Turnstile testing guide](https://developers.cloudflare.com/turnstile/troubleshooting/testing/) and test successful verification, user cancellation, timeout, expiration, invalid actions, hostname/action mismatches, reused tokens, offline behavior, TLS failures, and simultaneous verification attempts before releasing the application.
-17. In production, follow Cloudflare's [server-side validation guidance](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/): keep both endpoints on HTTPS, keep secrets out of the app and repository, avoid logging complete tokens, and process every token as short-lived and single-use.
+11. Allow the backend origin in the Cordova network allowlist and in the app's Content Security Policy, as shown in [Cordova network access and CORS](#cordova-network-access-and-cors).
+12. Configure the backend to accept the app's exact Cordova origin and to answer the JSON request's CORS preflight `OPTIONS` request. Do not use `Access-Control-Allow-Origin: *` in production.
+13. Wait for Cordova's [`deviceready` event](https://cordova.apache.org/docs/en/latest/cordova/events/events.html#deviceready) before accessing `cordova.plugins.turnstile`.
+14. Call [`cordova.plugins.turnstile.verify()`](#usage) with the full HTTPS challenge-page URL and the expected action. The URL's `action` query parameter must exactly match the `action` option.
+15. In the success callback, immediately send the returned token and the protected-operation data to the separate backend URL. The backend must validate the token and perform the protected operation in that same request.
+16. In the error callback, handle the plugin's [documented error codes](#error-codes) and let the user retry when appropriate. Do not silently bypass verification after an error.
+17. Use [`cancel()`](#cancel-an-active-verification) when the application needs to stop an active challenge. If the [optional badge](#optional-badge) is used, call `showBadge()` only where it is relevant and `hideBadge()` when leaving that screen.
+18. Follow Cloudflare's [Turnstile testing guide](https://developers.cloudflare.com/turnstile/troubleshooting/testing/) and test successful verification, user cancellation, timeout, expiration, invalid actions, hostname/action mismatches, reused tokens, offline behavior, TLS failures, CORS failures, and simultaneous verification attempts before releasing the application.
+19. In production, follow Cloudflare's [server-side validation guidance](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/): keep both endpoints on HTTPS, keep secrets out of the app and repository, avoid logging complete tokens, and process every token as short-lived and single-use.
 
 The challenge page and the backend validation endpoint have different responsibilities:
 
@@ -65,6 +71,34 @@ The challenge page and the backend validation endpoint have different responsibi
 | Turnstile site key | The hosted PHP challenge page. It is public. |
 | Turnstile secret key | Your backend validation endpoint only. It must never be included in the app or challenge page. |
 | Verification token | Returned to the app and sent immediately to your backend. |
+
+### Cordova network access and CORS
+
+The plugin loads the challenge page in its own restricted native WebView. The request that sends the returned token to your backend is made by the main Cordova WebView and must be allowed separately.
+
+Allow only your backend origin in the app's `config.xml`:
+
+```xml
+<access origin="https://api.example.com" />
+```
+
+Add the same backend to the `connect-src` directive in every Cordova HTML page that performs the request:
+
+```html
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'self' data: https://ssl.gstatic.com; connect-src 'self' https://api.example.com; style-src 'self'; img-src 'self' data: content:">
+```
+
+cordova-android serves the app from `https://localhost` by default. A backend receiving JSON from that origin must return these headers and answer `OPTIONS` with no protected operation:
+
+```http
+Access-Control-Allow-Origin: https://localhost
+Vary: Origin
+Access-Control-Allow-Methods: POST, OPTIONS
+Access-Control-Allow-Headers: Content-Type
+```
+
+If the Cordova `scheme` or `hostname` preference is changed, allow the resulting exact origin instead. The supplied backend examples use the `CORDOVA_ALLOWED_ORIGIN` environment variable and include preflight handling. CORS does not replace authentication or authorization.
 
 ### Deploy the supplied PHP page
 
@@ -84,7 +118,7 @@ cordova.plugins.turnstile.verify({
 }, onSuccess, onError);
 ```
 
-The supplied PHP page is ready to upload after setting the site key. It does not require a framework, database, secret key, or any files from this repository.
+The supplied PHP page is ready to upload after setting the site key. It requires PHP 7.0 or later but no framework, database, secret key, or other files from this repository. The separate PHP backend validator remains compatible with PHP 5.3 or later when cURL and JSON are enabled.
 
 ### Complete PHP example
 
@@ -104,6 +138,7 @@ declare(strict_types=1);
  *    https://example.com/turnstile.php?action=register
  *
  * Never place your Turnstile secret key in this file.
+ * Requires PHP 7.0 or later.
  */
 $turnstileSiteKey = 'YOUR_TURNSTILE_SITE_KEY';
 
@@ -118,7 +153,7 @@ if (!preg_match('/^[A-Za-z0-9_-]{1,32}$/', $action)) {
 }
 
 if ($turnstileSiteKey === 'YOUR_TURNSTILE_SITE_KEY'
-    || !preg_match('/^0x[A-Za-z0-9_-]{20,62}$/', $turnstileSiteKey)) {
+    || !preg_match('/^[A-Za-z0-9_-]{20,32}$/', $turnstileSiteKey)) {
     http_response_code(503);
     exit('Configure a valid Cloudflare Turnstile site key before using this page.');
 }
@@ -171,7 +206,7 @@ header('Pragma: no-cache');
                 appearance: 'always',
                 execution: 'render',
                 size: 'flexible',
-        theme: 'light',
+                theme: 'light',
                 language: 'auto',
                 callback: function (token) {
                     document.getElementById('status').textContent = 'Verification completed.';
@@ -183,6 +218,7 @@ header('Pragma: no-cache');
                     });
                 },
                 'error-callback': function (code) {
+                    document.getElementById('status').textContent = 'Cloudflare error: ' + String(code || 'unknown');
                     sendResult({
                         type: 'turnstile',
                         status: 'error',
@@ -235,18 +271,52 @@ header('Pragma: no-cache');
 
 If the page returns HTTP 400, check the `action` parameter. If it returns HTTP 503, the site key is still missing or has an invalid format.
 
+The site-key check accepts both production keys and Cloudflare's official `1x`, `2x`, and `3x` test sitekeys. Test sitekeys must be paired with the matching test secret key; production secrets reject dummy tokens and test secrets reject real tokens.
+
 ## Usage
 
-Call `verify` with the URL of your HTTPS Turnstile page and the expected action. The URL must contain an `action` query parameter whose value exactly matches the `action` option.
+Wait for `deviceready`, then call `verify` with the URL of your HTTPS Turnstile challenge page and the expected action.
+
+The challenge URL must:
+
+- Use HTTPS with a certificate accepted by every supported Android device.
+- Include a non-empty path, such as `/turnstile.php`.
+- Include an `action` query parameter that exactly matches the `action` option.
+- Finish loading on the same hostname and path. Redirects to another path do not start result polling and will eventually time out.
+
+Send the token to a separate backend URL. This complete example assumes that the backend origin has already been added to the Cordova allowlist and CSP and that its CORS policy accepts the Cordova app origin:
 
 ```javascript
+var TURNSTILE_PAGE_URL = 'https://verify.example.com/turnstile.php?action=register';
+var BACKEND_URL = 'https://api.example.com/register';
+
 cordova.plugins.turnstile.verify(
     {
-        url: 'https://example.com/turnstile-mobile?action=register',
+        url: TURNSTILE_PAGE_URL,
         action: 'register'
     },
     function (token) {
-        // Send the token to your backend immediately for verification.
+        fetch(BACKEND_URL, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                turnstileToken: token,
+                payload: {
+                    email: document.getElementById('email').value
+                }
+            })
+        }).then(function (response) {
+            return response.json().then(function (body) {
+                if (!response.ok || body.ok !== true) {
+                    throw new Error(body.message || 'The protected request was rejected.');
+                }
+                return body;
+            });
+        }).then(function () {
+            console.log('The backend validated Turnstile and completed the operation.');
+        }).catch(function (error) {
+            console.error(error.message);
+        });
     },
     function (errorCode) {
         console.error('Turnstile verification failed:', errorCode);
@@ -255,6 +325,19 @@ cordova.plugins.turnstile.verify(
 ```
 
 Only letters, numbers, underscores, and hyphens are accepted in the action, with a maximum length of 32 characters.
+
+Do not validate the token in one request and perform the protected operation in a later unprotected request. Siteverify validation and the protected operation belong in the same authenticated and authorized backend handler.
+
+### JavaScript API
+
+| Method | Parameters | Result |
+| --- | --- | --- |
+| `verify(options, success, error)` | `options.url` and `options.action` are required. | Returns the token to `success(token)`. Only one verification may run at a time. |
+| `cancel(success, error)` | No options. | Closes an active challenge. The active `verify` error callback receives `cancel`; the `cancel` call itself succeeds after requesting cancellation. |
+| `showBadge(options, success, error)` | Optional `label`, `detail`, and `position`. | Shows or replaces the native informational badge. |
+| `hideBadge(success, error)` | No options. | Removes the badge if present. |
+
+`showBadge` defaults to `Protected by Turnstile`, `Privacy · Help`, and `bottomright`. `position` accepts `bottomright` or `bottomleft`; `label` and `detail` are limited to 80 characters each. The badge is informational and does not replace the challenge or Siteverify.
 
 ### Remote page contract
 
@@ -269,7 +352,7 @@ window.cordovaTurnstileResult = {
 };
 ```
 
-The `action` value must match the action passed to `verify`. Supported non-success statuses include `cancel`, `expired`, and `timeout`; any other status is reported as `challenge_error`.
+The `action` value must match the action passed to `verify`. Supported non-success statuses include `cancel`, `expired`, and `timeout`; any other status is reported as the generic `challenge_error`. The plugin does not currently expose Cloudflare's detailed client-side error code to the Cordova callback; use Cloudflare's [client-side error reference](https://developers.cloudflare.com/turnstile/troubleshooting/client-side-errors/error-codes/) while diagnosing the hosted page.
 
 ### Cancel an active verification
 
@@ -327,6 +410,15 @@ Complete, runnable backend examples are included for [PHP, Node.js, and Python w
 
 See the [Cloudflare server-side validation documentation](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/) for the required request and response handling.
 
+If a backend retries a Siteverify request after a network failure, generate one UUID and send it as `idempotency_key` on every attempt for that validation. Reusing the same idempotency key makes the retry safe; generating a new key for each attempt defeats that protection. The supplied examples do not retry automatically and therefore do not send this optional field.
+
+### Testing and environments
+
+- Use Cloudflare's [official test sitekeys and secret keys](https://developers.cloudflare.com/turnstile/troubleshooting/testing/) for predictable success, failure, interactive, and duplicate-token tests. Never deploy test credentials to production.
+- Use separate widgets and secrets for development, staging, and production. Restrict every production widget to hostnames you control.
+- Test the complete request, including the app's CSP and allowlist, the CORS preflight, Siteverify, hostname/action checks, authentication, authorization, and the protected operation.
+- Rotate an exposed or committed secret immediately using Cloudflare's [secret rotation procedure](https://developers.cloudflare.com/turnstile/troubleshooting/rotate-secret-key/), then update the backend environment configuration. Never place the replacement in source control.
+
 ## Security notes
 
 - Only HTTPS verification URLs are accepted.
@@ -335,6 +427,8 @@ See the [Cloudflare server-side validation documentation](https://developers.clo
 - SSL errors are never bypassed.
 - Navigation is restricted to the initial page's host and `challenges.cloudflare.com`.
 - Only one verification can run at a time.
+- Keep Android System WebView or Chrome updated on supported devices.
+- The hosted page CSP must continue to allow scripts, frames, and connections to `https://challenges.cloudflare.com`.
 
 ## License
 
@@ -344,11 +438,12 @@ Cloudflare, the Cloudflare logo, and Cloudflare Turnstile are trademarks of Clou
 
 ## Demo application
 
-The complete Cordova project source and its precompiled test APK are available in the [cordova-plugin-demos repository](https://github.com/andreszs/cordova-plugin-demos/tree/main/com.andreszs.turnstile.demo).
+The Cordova demo source files and its precompiled test APK are available in the [cordova-plugin-demos repository](https://github.com/andreszs/cordova-plugin-demos/tree/main/com.andreszs.turnstile.demo).
 
-The source contains no preconfigured verification endpoint URL or Turnstile keys. Developers provide their own hosted HTTPS endpoint when building the app. The [precompiled Android APK](https://github.com/andreszs/cordova-plugin-demos/raw/main/com.andreszs.turnstile.demo/com.andreszs.turnstile.demo.apk) is preconfigured to use the plugin project's public demo endpoint for immediate testing.
+The source contains no preconfigured endpoint URLs or Turnstile keys. Developers provide separate challenge and backend URLs when building the app. The [precompiled Android APK](https://github.com/andreszs/cordova-plugin-demos/raw/main/com.andreszs.turnstile.demo/com.andreszs.turnstile.demo.apk) uses a public demo-only service that combines both routes for immediate testing; production applications should preserve the separation documented above.
 
 <p align="center">
-  <img src="screenshots/android/turnstile-demo-challenge.png" width="320" alt="Turnstile demo showing the Cloudflare challenge">
-  <img src="screenshots/android/turnstile-demo-validation.png" width="320" alt="Turnstile demo showing successful server-side validation">
+  <img src="screenshots/android/turnstile-demo-initial.png" width="280" alt="Turnstile demo ready on a Samsung Galaxy S7">
+  <img src="screenshots/android/turnstile-demo-challenge.png" width="280" alt="Cloudflare Turnstile challenge on a Samsung Galaxy S7">
+  <img src="screenshots/android/turnstile-demo-validation.png" width="280" alt="Successful server-side validation on a Samsung Galaxy S7">
 </p>

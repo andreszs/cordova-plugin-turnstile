@@ -3,9 +3,10 @@
  * Backend validation example for cordova-plugin-turnstile.
  * Receives a Turnstile token, validates it with Cloudflare Siteverify, and only
  * then runs the protected operation. Define TURNSTILE_SECRET_KEY,
- * TURNSTILE_EXPECTED_HOSTNAME, and TURNSTILE_EXPECTED_ACTION outside this file
- * in the hosting panel, Apache VirtualHost, or PHP-FPM pool configuration.
- * Edit only the marked protected-operation line to add your application logic.
+ * TURNSTILE_EXPECTED_HOSTNAME, TURNSTILE_EXPECTED_ACTION, and
+ * CORDOVA_ALLOWED_ORIGIN outside this file in the hosting panel, Apache
+ * VirtualHost, or PHP-FPM pool configuration. Edit only the marked
+ * protected-operation line to add your application logic.
  * Requires PHP 5.3+ with the cURL and JSON extensions enabled.
  * Plugin: https://github.com/andreszs/cordova-plugin-turnstile
  */
@@ -53,9 +54,31 @@ if (!function_exists('json_encode') || !function_exists('json_decode') || !funct
     exit;
 }
 
+$allowedOrigin = requiredEnvironmentVariable('CORDOVA_ALLOWED_ORIGIN');
+if (!preg_match('#^https?://[A-Za-z0-9.-]+(?::[0-9]{1,5})?$#', $allowedOrigin)) {
+    jsonResponse(500, array('ok' => false, 'message' => 'Server configuration is invalid.'));
+}
+
+header('Access-Control-Allow-Origin: ' . $allowedOrigin);
+header('Vary: Origin');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Max-Age: 600');
+
+$requestOrigin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
+if ($requestOrigin !== '' && $requestOrigin !== $allowedOrigin) {
+    jsonResponse(403, array('ok' => false, 'message' => 'Origin not allowed.'));
+}
+
 $requestMethod = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : '';
+if ($requestMethod === 'OPTIONS') {
+    header('HTTP/1.1 204 No Content');
+    header('Cache-Control: no-store');
+    exit;
+}
+
 if ($requestMethod !== 'POST') {
-    header('Allow: POST');
+    header('Allow: POST, OPTIONS');
     jsonResponse(405, array('ok' => false, 'message' => 'Method not allowed.'));
 }
 

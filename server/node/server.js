@@ -2,9 +2,10 @@
  * Backend validation example for cordova-plugin-turnstile.
  * Receives a Turnstile token, validates it with Cloudflare Siteverify, and only
  * then runs the protected operation. Define TURNSTILE_SECRET_KEY,
- * TURNSTILE_EXPECTED_HOSTNAME, and TURNSTILE_EXPECTED_ACTION outside this file
- * in the hosting platform or process configuration. Edit only the marked
- * protected-operation line to add your application logic.
+ * TURNSTILE_EXPECTED_HOSTNAME, TURNSTILE_EXPECTED_ACTION, and
+ * CORDOVA_ALLOWED_ORIGIN outside this file in the hosting platform or process
+ * configuration. Edit only the marked protected-operation line to add your
+ * application logic.
  * Plugin: https://github.com/andreszs/cordova-plugin-turnstile
  */
 import { createServer } from 'node:http';
@@ -26,6 +27,7 @@ const config = {
     secretKey: requiredEnvironmentVariable('TURNSTILE_SECRET_KEY'),
     expectedHostname: requiredEnvironmentVariable('TURNSTILE_EXPECTED_HOSTNAME'),
     expectedAction: requiredEnvironmentVariable('TURNSTILE_EXPECTED_ACTION'),
+    allowedOrigin: requiredEnvironmentVariable('CORDOVA_ALLOWED_ORIGIN'),
     host: process.env.HOST?.trim() || '127.0.0.1',
     port: Number.parseInt(process.env.PORT || '3000', 10),
 };
@@ -34,8 +36,30 @@ if (!/^[A-Za-z0-9_-]{1,32}$/.test(config.expectedAction)) {
     throw new Error('TURNSTILE_EXPECTED_ACTION must be a valid Turnstile action.');
 }
 
+try {
+    const allowedOrigin = new URL(config.allowedOrigin);
+    if (!['http:', 'https:'].includes(allowedOrigin.protocol)
+            || allowedOrigin.origin !== config.allowedOrigin
+            || allowedOrigin.username || allowedOrigin.password) {
+        throw new Error();
+    }
+} catch {
+    throw new Error('CORDOVA_ALLOWED_ORIGIN must be an exact HTTP or HTTPS origin.');
+}
+
+function corsHeaders() {
+    return {
+        'Access-Control-Allow-Origin': config.allowedOrigin,
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Max-Age': '600',
+        'Vary': 'Origin',
+    };
+}
+
 function sendJson(response, status, body) {
     response.writeHead(status, {
+        ...corsHeaders(),
         'Content-Type': 'application/json; charset=utf-8',
         'Cache-Control': 'no-store',
     });
@@ -112,8 +136,26 @@ async function verifyTurnstileToken(token) {
 const server = createServer(async (request, response) => {
     const url = new URL(request.url || '/', `http://${request.headers.host || 'localhost'}`);
 
-    if (request.method !== 'POST' || url.pathname !== '/api/protected-action') {
+    if (url.pathname !== '/api/protected-action') {
         sendJson(response, 404, { ok: false, message: 'Not found.' });
+        return;
+    }
+
+    const requestOrigin = request.headers.origin;
+    if (requestOrigin && requestOrigin !== config.allowedOrigin) {
+        sendJson(response, 403, { ok: false, message: 'Origin not allowed.' });
+        return;
+    }
+
+    if (request.method === 'OPTIONS') {
+        response.writeHead(204, corsHeaders());
+        response.end();
+        return;
+    }
+
+    if (request.method !== 'POST') {
+        response.writeHead(405, {...corsHeaders(), Allow: 'POST, OPTIONS'});
+        response.end();
         return;
     }
 

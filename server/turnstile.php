@@ -10,6 +10,7 @@ declare(strict_types=1);
  *    https://example.com/turnstile.php?action=register
  *
  * Never place your Turnstile secret key in this file.
+ * Requires PHP 7.0 or later.
  */
 $turnstileSiteKey = 'YOUR_TURNSTILE_SITE_KEY';
 
@@ -24,7 +25,7 @@ if (!preg_match('/^[A-Za-z0-9_-]{1,32}$/', $action)) {
 }
 
 if ($turnstileSiteKey === 'YOUR_TURNSTILE_SITE_KEY'
-    || !preg_match('/^0x[A-Za-z0-9_-]{20,62}$/', $turnstileSiteKey)) {
+    || !preg_match('/^[A-Za-z0-9_-]{20,32}$/', $turnstileSiteKey)) {
     http_response_code(503);
     exit('Configure a valid Cloudflare Turnstile site key before using this page.');
 }

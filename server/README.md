@@ -30,8 +30,11 @@ Each example reads these values from server environment variables:
 | `TURNSTILE_SECRET_KEY` | Private secret from the Turnstile dashboard | `0x4AAAA...` |
 | `TURNSTILE_EXPECTED_HOSTNAME` | Exact hostname that serves the challenge page | `verify.example.com` |
 | `TURNSTILE_EXPECTED_ACTION` | Exact action for this protected endpoint | `register` |
+| `CORDOVA_ALLOWED_ORIGIN` | Exact origin of the Cordova main WebView | `https://localhost` |
 
-Do not accept the expected hostname or action from the app. They are security policy and must be configured by the backend.
+Do not accept the expected hostname, action, or allowed origin from the app. They are security policy and must be configured by the backend.
+
+cordova-android uses `https://localhost` by default. If the app changes its Cordova `scheme` or `hostname` preference, set `CORDOVA_ALLOWED_ORIGIN` to the resulting exact origin without a trailing slash. The examples return an explicit CORS policy, reject other supplied origins, and answer preflight `OPTIONS` requests without running Siteverify or the protected operation.
 
 The examples are complete Turnstile validators, but they cannot know your application's protected operation. You must either replace the marked `Perform the protected operation here` line with that operation or copy the validation code into your existing backend handler. Do not use this as a validation-only service followed by a separate unprotected request.
 
@@ -48,6 +51,7 @@ Use whichever option matches your server:
   SetEnv TURNSTILE_SECRET_KEY "YOUR_TURNSTILE_SECRET_KEY"
   SetEnv TURNSTILE_EXPECTED_HOSTNAME "verify.example.com"
   SetEnv TURNSTILE_EXPECTED_ACTION "register"
+  SetEnv CORDOVA_ALLOWED_ORIGIN "https://localhost"
   ```
 
 - **PHP-FPM:** add the values to the relevant pool configuration and restart PHP-FPM. See the official [PHP-FPM configuration documentation](https://www.php.net/manual/en/install.fpm.configuration.php).
@@ -56,6 +60,7 @@ Use whichever option matches your server:
   env[TURNSTILE_SECRET_KEY] = YOUR_TURNSTILE_SECRET_KEY
   env[TURNSTILE_EXPECTED_HOSTNAME] = verify.example.com
   env[TURNSTILE_EXPECTED_ACTION] = register
+  env[CORDOVA_ALLOWED_ORIGIN] = https://localhost
   ```
 
 - **Shell-launched development server:** set the variables in the same terminal before starting PHP, Node.js, or Uvicorn. The values apply only to processes started from that terminal.
@@ -66,6 +71,7 @@ For Linux and macOS shells:
 export TURNSTILE_SECRET_KEY='YOUR_TURNSTILE_SECRET_KEY'
 export TURNSTILE_EXPECTED_HOSTNAME='verify.example.com'
 export TURNSTILE_EXPECTED_ACTION='register'
+export CORDOVA_ALLOWED_ORIGIN='https://localhost'
 ```
 
 For PowerShell:
@@ -74,6 +80,7 @@ For PowerShell:
 $env:TURNSTILE_SECRET_KEY = 'YOUR_TURNSTILE_SECRET_KEY'
 $env:TURNSTILE_EXPECTED_HOSTNAME = 'verify.example.com'
 $env:TURNSTILE_EXPECTED_ACTION = 'register'
+$env:CORDOVA_ALLOWED_ORIGIN = 'https://localhost'
 ```
 
 ## PHP
@@ -124,11 +131,13 @@ Each endpoint:
 
 Replace that placeholder with the real operation, such as account creation, login, form submission, or password recovery. Preserve the order: never change protected state before validation succeeds.
 
+The examples fail closed on a Siteverify transport failure and do not retry automatically. If production code adds retries, generate one UUID for the logical validation and send that same value as Cloudflare's optional `idempotency_key` on every retry.
+
 ## Production checklist
 
 - Use HTTPS and keep the secret key in a secret manager or protected environment configuration.
 - Add the authentication, authorization, input validation, rate limiting, logging, and body limits required by the protected operation.
-- Configure CORS explicitly if the endpoint must accept browser origins; do not use a wildcard by default.
+- Keep `CORDOVA_ALLOWED_ORIGIN` restricted to the exact Cordova origin; do not replace it with a wildcard.
 - Configure trusted proxies before deriving a client IP, or omit the optional `remoteip` Siteverify field as these examples do.
 - Do not log tokens or return Cloudflare's detailed verification response to clients.
 - Create a separate expected action configuration or endpoint for each protected operation.
