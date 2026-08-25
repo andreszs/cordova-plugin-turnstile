@@ -24,12 +24,6 @@ When the package is available from npm, it can also be installed with:
 cordova plugin add cordova-plugin-turnstile
 ```
 
-## Demo application
-
-The [Turnstile demo source](https://github.com/andreszs/cordova-plugin-demos/tree/main/com.andreszs.turnstile.demo) contains no preconfigured verification endpoint URL or Turnstile keys. Developers provide their own hosted HTTPS endpoint when running a build from source.
-
-A [precompiled Android APK](https://github.com/andreszs/cordova-plugin-demos/raw/main/com.andreszs.turnstile.demo/com.andreszs.turnstile.demo.apk) is also available for immediate testing. That test-only binary is preconfigured to use the plugin project's public demo endpoint.
-
 ## Host the verification page
 
 This plugin does not provide or depend on a shared verification service. The developer using the plugin must host a small HTTPS page that renders the Turnstile widget.
@@ -347,3 +341,14 @@ See the [Cloudflare server-side validation documentation](https://developers.clo
 This project is licensed under the MIT License. See [LICENSE](LICENSE).
 
 Cloudflare, the Cloudflare logo, and Cloudflare Turnstile are trademarks of Cloudflare, Inc. This project is not affiliated with or endorsed by Cloudflare, Inc.
+
+## Demo application
+
+The complete Cordova project source and its precompiled test APK are available in the [cordova-plugin-demos repository](https://github.com/andreszs/cordova-plugin-demos/tree/main/com.andreszs.turnstile.demo).
+
+The source contains no preconfigured verification endpoint URL or Turnstile keys. Developers provide their own hosted HTTPS endpoint when building the app. The [precompiled Android APK](https://github.com/andreszs/cordova-plugin-demos/raw/main/com.andreszs.turnstile.demo/com.andreszs.turnstile.demo.apk) is preconfigured to use the plugin project's public demo endpoint for immediate testing.
+
+<p align="center">
+  <img src="screenshots/android/turnstile-demo-validation.png" width="320" alt="Turnstile demo showing successful server-side validation">
+  <img src="screenshots/android/turnstile-demo-badge.png" width="320" alt="Turnstile demo showing the optional native badge">
+</p>
