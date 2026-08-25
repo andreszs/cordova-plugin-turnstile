@@ -349,6 +349,6 @@ The complete Cordova project source and its precompiled test APK are available i
 The source contains no preconfigured verification endpoint URL or Turnstile keys. Developers provide their own hosted HTTPS endpoint when building the app. The [precompiled Android APK](https://github.com/andreszs/cordova-plugin-demos/raw/main/com.andreszs.turnstile.demo/com.andreszs.turnstile.demo.apk) is preconfigured to use the plugin project's public demo endpoint for immediate testing.
 
 <p align="center">
+  <img src="screenshots/android/turnstile-demo-challenge.png" width="320" alt="Turnstile demo showing the Cloudflare challenge">
   <img src="screenshots/android/turnstile-demo-validation.png" width="320" alt="Turnstile demo showing successful server-side validation">
-  <img src="screenshots/android/turnstile-demo-badge.png" width="320" alt="Turnstile demo showing the optional native badge">
 </p>
