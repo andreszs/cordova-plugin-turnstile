@@ -46,7 +46,7 @@ This plugin does not provide or depend on a shared verification service. The dev
 4. Upload `turnstile.php` to one of the [allowed hostnames](https://developers.cloudflare.com/turnstile/additional-configuration/hostname-management/) over HTTPS and confirm that its TLS certificate is valid on the Android devices you support.
 5. Choose an [action](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/widget-configurations/#custom-data) for each protected operation, such as `login` or `register`. Actions must contain 1-32 letters, numbers, underscores, or hyphens.
 6. Test the hosted page in a browser with the action query parameter, for example `https://example.com/turnstile.php?action=register`, and confirm that the widget loads. Refer to Cloudflare's [client-side rendering guide](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/) if the widget does not render.
-7. Implement a backend endpoint that receives the Turnstile token together with the protected request. This endpoint is separate from the hosted challenge page.
+7. Implement a backend endpoint that receives the Turnstile token together with the protected request. This endpoint is separate from the hosted challenge page. Start with the complete [PHP, Node.js, or Python/FastAPI examples](server/README.md), then replace the protected-operation placeholder with your application logic.
 8. From that backend endpoint, send the token and secret key to Cloudflare's [Siteverify API](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/). Optionally include the user's remote IP when it is available and trustworthy.
 9. Reject the protected request unless Siteverify returns `success: true` and the response contains the hostname and action expected for that operation. Use the official [Siteverify response and error reference](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/) and fail closed on network errors, invalid JSON, expired tokens, or duplicate tokens.
 10. Use the [Apache Cordova CLI](https://cordova.apache.org/docs/en/latest/reference/cordova-cli/) to add Android and install this plugin from [GitHub](https://github.com/andreszs/cordova-plugin-turnstile) or npm. Use Cordova 11 and cordova-android 11 or later.
@@ -322,6 +322,8 @@ The error callback may receive one of these string codes:
 A token returned by this plugin is not proof of successful verification by itself. Send it to your backend immediately and validate it with Cloudflare's Siteverify API. Keep the Turnstile secret key on the server; never embed it in the Cordova application or the remote challenge page.
 
 The backend should also verify the expected hostname and action in the Siteverify response before accepting the request. Turnstile tokens are single-use and expire after a short period.
+
+Complete, runnable backend examples are included for [PHP, Node.js, and Python with FastAPI](server/README.md). They all use the same request contract, keep the expected hostname and action in server configuration, fail closed, and execute the protected-operation placeholder only after successful validation.
 
 See the [Cloudflare server-side validation documentation](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/) for the required request and response handling.
 
