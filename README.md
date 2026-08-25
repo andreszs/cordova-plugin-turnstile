@@ -1,3 +1,5 @@
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/andreszs/cordova-plugin-turnstile) ![GitHub top language](https://img.shields.io/github/languages/top/andreszs/cordova-plugin-turnstile) ![GitHub](https://img.shields.io/github/license/andreszs/cordova-plugin-turnstile) ![GitHub last commit](https://img.shields.io/github/last-commit/andreszs/cordova-plugin-turnstile)
+
 # cordova-plugin-turnstile
 
 A Cordova plugin that runs [Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/) in a secure Android WebView dialog without navigating away from the Cordova screen that requested verification.
