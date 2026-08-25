@@ -28,14 +28,15 @@ cordova plugin add cordova-plugin-turnstile
 
 This plugin does not provide or depend on a shared verification service. The developer using the plugin must host a small HTTPS page that renders the Turnstile widget.
 
-The request flow is:
+### End-to-end verification flow
 
-1. The Cordova app opens your hosted PHP page inside the plugin WebView.
-2. The PHP page renders Turnstile using your public site key.
-3. Turnstile returns a short-lived token to the PHP page.
-4. The page exposes that token through `window.cordovaTurnstileResult`.
-5. The plugin returns the token to the Cordova app.
-6. The app sends the token to your backend, where it is validated with Cloudflare Siteverify.
+1. The Cordova app asks the plugin to open your hosted PHP page with an expected action.
+2. The page renders the Turnstile widget using your public site key and that action.
+3. After the challenge succeeds, Turnstile gives the page a short-lived token.
+4. The page publishes the token through `window.cordovaTurnstileResult`.
+5. The plugin closes the dialog and returns the token to the app's success callback.
+6. The app sends the token to its backend, which submits it to Cloudflare Siteverify with the secret key.
+7. The backend accepts the protected request only when Siteverify reports success and the expected hostname and action.
 
 The challenge page and the backend validation endpoint have different responsibilities:
 
