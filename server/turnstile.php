@@ -13,6 +13,7 @@ declare(strict_types=1);
  */
 $turnstileSiteKey = 'YOUR_TURNSTILE_SITE_KEY';
 
+// The URL action must exactly match the action passed to plugin.verify().
 $action = isset($_GET['action']) && is_string($_GET['action'])
     ? $_GET['action']
     : '';
@@ -28,6 +29,7 @@ if ($turnstileSiteKey === 'YOUR_TURNSTILE_SITE_KEY'
     exit('Configure a valid Cloudflare Turnstile site key before using this page.');
 }
 
+// Restrict this page to the resources required by the Turnstile widget.
 $nonce = rtrim(strtr(base64_encode(random_bytes(18)), '+/', '-_'), '=');
 $csp = "default-src 'none'; "
     ."script-src 'nonce-$nonce' 'strict-dynamic' https://challenges.cloudflare.com; "
@@ -64,6 +66,7 @@ header('Pragma: no-cache');
         var cordovaTurnstileSiteKey = <?=json_encode($turnstileSiteKey, JSON_UNESCAPED_SLASHES)?>;
 
         function sendResult(payload) {
+            // The Android plugin polls this variable and consumes it once.
             window.cordovaTurnstileResult = payload;
         }
 
