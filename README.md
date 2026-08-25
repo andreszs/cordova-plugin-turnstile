@@ -40,23 +40,23 @@ This plugin does not provide or depend on a shared verification service. The dev
 
 ### Complete implementation steps
 
-1. Create a Turnstile widget in the Cloudflare dashboard and add every hostname that will serve the challenge page.
-2. Copy the widget's site key and secret key. The site key is public; store the secret key only in secure backend configuration.
+1. Create a widget in the [Cloudflare Turnstile dashboard](https://dash.cloudflare.com/?to=/:account/turnstile), following the official [widget creation guide](https://developers.cloudflare.com/turnstile/get-started/widget-management/dashboard/), and add every hostname that will serve the challenge page through [Hostname Management](https://developers.cloudflare.com/turnstile/additional-configuration/hostname-management/).
+2. Copy the widget's site key and secret key. Review the [widget key concepts](https://developers.cloudflare.com/turnstile/concepts/widget/): the site key is public, while the secret key must remain only in secure backend configuration.
 3. Download [`server/turnstile.php`](server/turnstile.php), replace `YOUR_TURNSTILE_SITE_KEY` with the site key, and leave the secret key out of this file.
-4. Upload `turnstile.php` to one of the allowed hostnames over HTTPS and confirm that its TLS certificate is valid on the Android devices you support.
-5. Choose an action for each protected operation, such as `login` or `register`. Actions must contain 1-32 letters, numbers, underscores, or hyphens.
-6. Test the hosted page in a browser with the action query parameter, for example `https://example.com/turnstile.php?action=register`, and confirm that the widget loads.
+4. Upload `turnstile.php` to one of the [allowed hostnames](https://developers.cloudflare.com/turnstile/additional-configuration/hostname-management/) over HTTPS and confirm that its TLS certificate is valid on the Android devices you support.
+5. Choose an [action](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/widget-configurations/#custom-data) for each protected operation, such as `login` or `register`. Actions must contain 1-32 letters, numbers, underscores, or hyphens.
+6. Test the hosted page in a browser with the action query parameter, for example `https://example.com/turnstile.php?action=register`, and confirm that the widget loads. Refer to Cloudflare's [client-side rendering guide](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/) if the widget does not render.
 7. Implement a backend endpoint that receives the Turnstile token together with the protected request. This endpoint is separate from the hosted challenge page.
-8. From that backend endpoint, send the token and secret key to Cloudflare's Siteverify API. Optionally include the user's remote IP when it is available and trustworthy.
-9. Reject the protected request unless Siteverify returns `success: true` and the response contains the hostname and action expected for that operation. Also fail closed on network errors, invalid JSON, expired tokens, or duplicate tokens.
-10. Add Android to the Cordova project and install this plugin from GitHub or npm. Use Cordova 11 and cordova-android 11 or later.
-11. Wait for Cordova's `deviceready` event before accessing `cordova.plugins.turnstile`.
-12. Call `cordova.plugins.turnstile.verify()` with the full HTTPS page URL and the expected action. The URL's `action` query parameter must exactly match the `action` option.
+8. From that backend endpoint, send the token and secret key to Cloudflare's [Siteverify API](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/). Optionally include the user's remote IP when it is available and trustworthy.
+9. Reject the protected request unless Siteverify returns `success: true` and the response contains the hostname and action expected for that operation. Use the official [Siteverify response and error reference](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/) and fail closed on network errors, invalid JSON, expired tokens, or duplicate tokens.
+10. Use the [Apache Cordova CLI](https://cordova.apache.org/docs/en/latest/reference/cordova-cli/) to add Android and install this plugin from [GitHub](https://github.com/andreszs/cordova-plugin-turnstile) or npm. Use Cordova 11 and cordova-android 11 or later.
+11. Wait for Cordova's [`deviceready` event](https://cordova.apache.org/docs/en/latest/cordova/events/events.html#deviceready) before accessing `cordova.plugins.turnstile`.
+12. Call [`cordova.plugins.turnstile.verify()`](#usage) with the full HTTPS page URL and the expected action. The URL's `action` query parameter must exactly match the `action` option.
 13. In the success callback, send the returned token and protected request data to your backend immediately. A local success callback alone does not complete verification.
-14. In the error callback, handle the documented error codes and let the user retry when appropriate. Do not silently bypass verification after an error.
-15. Use `cancel()` when the application needs to stop an active challenge. If the optional badge is used, call `showBadge()` only where it is relevant and `hideBadge()` when leaving that screen.
-16. Test successful verification, user cancellation, timeout, expiration, invalid actions, hostname/action mismatches, reused tokens, offline behavior, TLS failures, and simultaneous verification attempts before releasing the application.
-17. In production, keep the challenge page and backend validation endpoint on HTTPS, keep secrets out of the app and repository, avoid logging complete tokens, and process every token as short-lived and single-use.
+14. In the error callback, handle the plugin's [documented error codes](#error-codes), consult Cloudflare's [client-side error reference](https://developers.cloudflare.com/turnstile/troubleshooting/client-side-errors/error-codes/) when necessary, and let the user retry when appropriate. Do not silently bypass verification after an error.
+15. Use [`cancel()`](#cancel-an-active-verification) when the application needs to stop an active challenge. If the [optional badge](#optional-badge) is used, call `showBadge()` only where it is relevant and `hideBadge()` when leaving that screen.
+16. Follow Cloudflare's [Turnstile testing guide](https://developers.cloudflare.com/turnstile/troubleshooting/testing/) and test successful verification, user cancellation, timeout, expiration, invalid actions, hostname/action mismatches, reused tokens, offline behavior, TLS failures, and simultaneous verification attempts before releasing the application.
+17. In production, follow Cloudflare's [server-side validation guidance](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/): keep both endpoints on HTTPS, keep secrets out of the app and repository, avoid logging complete tokens, and process every token as short-lived and single-use.
 
 The challenge page and the backend validation endpoint have different responsibilities:
 
