@@ -38,6 +38,26 @@ This plugin does not provide or depend on a shared verification service. The dev
 6. The app sends the token to its backend, which submits it to Cloudflare Siteverify with the secret key.
 7. The backend accepts the protected request only when Siteverify reports success and the expected hostname and action.
 
+### Complete implementation steps
+
+1. Create a Turnstile widget in the Cloudflare dashboard and add every hostname that will serve the challenge page.
+2. Copy the widget's site key and secret key. The site key is public; store the secret key only in secure backend configuration.
+3. Download [`server/turnstile.php`](server/turnstile.php), replace `YOUR_TURNSTILE_SITE_KEY` with the site key, and leave the secret key out of this file.
+4. Upload `turnstile.php` to one of the allowed hostnames over HTTPS and confirm that its TLS certificate is valid on the Android devices you support.
+5. Choose an action for each protected operation, such as `login` or `register`. Actions must contain 1-32 letters, numbers, underscores, or hyphens.
+6. Test the hosted page in a browser with the action query parameter, for example `https://example.com/turnstile.php?action=register`, and confirm that the widget loads.
+7. Implement a backend endpoint that receives the Turnstile token together with the protected request. This endpoint is separate from the hosted challenge page.
+8. From that backend endpoint, send the token and secret key to Cloudflare's Siteverify API. Optionally include the user's remote IP when it is available and trustworthy.
+9. Reject the protected request unless Siteverify returns `success: true` and the response contains the hostname and action expected for that operation. Also fail closed on network errors, invalid JSON, expired tokens, or duplicate tokens.
+10. Add Android to the Cordova project and install this plugin from GitHub or npm. Use Cordova 11 and cordova-android 11 or later.
+11. Wait for Cordova's `deviceready` event before accessing `cordova.plugins.turnstile`.
+12. Call `cordova.plugins.turnstile.verify()` with the full HTTPS page URL and the expected action. The URL's `action` query parameter must exactly match the `action` option.
+13. In the success callback, send the returned token and protected request data to your backend immediately. A local success callback alone does not complete verification.
+14. In the error callback, handle the documented error codes and let the user retry when appropriate. Do not silently bypass verification after an error.
+15. Use `cancel()` when the application needs to stop an active challenge. If the optional badge is used, call `showBadge()` only where it is relevant and `hideBadge()` when leaving that screen.
+16. Test successful verification, user cancellation, timeout, expiration, invalid actions, hostname/action mismatches, reused tokens, offline behavior, TLS failures, and simultaneous verification attempts before releasing the application.
+17. In production, keep the challenge page and backend validation endpoint on HTTPS, keep secrets out of the app and repository, avoid logging complete tokens, and process every token as short-lived and single-use.
+
 The challenge page and the backend validation endpoint have different responsibilities:
 
 | Value | Where it belongs |
