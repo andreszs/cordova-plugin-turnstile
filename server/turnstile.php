@@ -89,6 +89,7 @@ header('Pragma: no-cache');
                     });
                 },
                 'error-callback': function (code) {
+                    document.getElementById('status').textContent = 'Cloudflare error: ' + String(code || 'unknown');
                     sendResult({
                         type: 'turnstile',
                         status: 'error',
