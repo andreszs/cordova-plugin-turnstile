@@ -171,7 +171,7 @@ header('Pragma: no-cache');
                 appearance: 'always',
                 execution: 'render',
                 size: 'flexible',
-                theme: 'auto',
+        theme: 'light',
                 language: 'auto',
                 callback: function (token) {
                     document.getElementById('status').textContent = 'Verification completed.';
