@@ -1,8 +1,10 @@
 /**
  * Backend validation example for cordova-plugin-turnstile.
  * Receives a Turnstile token, validates it with Cloudflare Siteverify, and only
- * then runs the protected operation. No credentials should be added here: set
- * the three TURNSTILE_* environment variables and replace the marked operation.
+ * then runs the protected operation. Define TURNSTILE_SECRET_KEY,
+ * TURNSTILE_EXPECTED_HOSTNAME, and TURNSTILE_EXPECTED_ACTION outside this file
+ * in the hosting platform or process configuration. Edit only the marked
+ * protected-operation line to add your application logic.
  * Plugin: https://github.com/andreszs/cordova-plugin-turnstile
  */
 import { createServer } from 'node:http';

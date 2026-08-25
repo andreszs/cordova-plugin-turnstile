@@ -33,6 +33,33 @@ Each example reads these values from server environment variables:
 
 Do not accept the expected hostname or action from the app. They are security policy and must be configured by the backend.
 
+The examples are complete Turnstile validators, but they cannot know your application's protected operation. You must either replace the marked `Perform the protected operation here` line with that operation or copy the validation code into your existing backend handler. Do not use this as a validation-only service followed by a separate unprotected request.
+
+## Where to define the environment variables
+
+Define the variables in the environment of the process that runs the backend. Do not paste the secret key into these example files, the Cordova application, or the hosted challenge page.
+
+Use whichever option matches your server:
+
+- **Hosting platform:** use its environment-variable or secret-management panel.
+- **Apache or XAMPP:** add the following directives inside the site's `VirtualHost`. On XAMPP for Windows, virtual hosts are normally configured in `C:\xampp\apache\conf\extra\httpd-vhosts.conf`. Restart Apache after changing it. Apache documents `SetEnv` in [`mod_env`](https://httpd.apache.org/docs/current/mod/mod_env.html#setenv).
+
+  ```apache
+  SetEnv TURNSTILE_SECRET_KEY "YOUR_TURNSTILE_SECRET_KEY"
+  SetEnv TURNSTILE_EXPECTED_HOSTNAME "verify.example.com"
+  SetEnv TURNSTILE_EXPECTED_ACTION "register"
+  ```
+
+- **PHP-FPM:** add the values to the relevant pool configuration and restart PHP-FPM. See the official [PHP-FPM configuration documentation](https://www.php.net/manual/en/install.fpm.configuration.php).
+
+  ```ini
+  env[TURNSTILE_SECRET_KEY] = YOUR_TURNSTILE_SECRET_KEY
+  env[TURNSTILE_EXPECTED_HOSTNAME] = verify.example.com
+  env[TURNSTILE_EXPECTED_ACTION] = register
+  ```
+
+- **Shell-launched development server:** set the variables in the same terminal before starting PHP, Node.js, or Uvicorn. The values apply only to processes started from that terminal.
+
 For Linux and macOS shells:
 
 ```shell
@@ -53,13 +80,13 @@ $env:TURNSTILE_EXPECTED_ACTION = 'register'
 
 [`php/validate-turnstile.php`](php/validate-turnstile.php) is a dependency-free endpoint compatible with PHP 5.3 or later. It requires the cURL and JSON extensions.
 
-For local development, after setting the environment variables:
+For local development with PHP 5.4 or later, after setting the variables in the same shell:
 
 ```shell
 php -S 127.0.0.1:8080 -t php
 ```
 
-Send protected requests to `http://127.0.0.1:8080/validate-turnstile.php`. Syntax compatibility does not make obsolete PHP releases safe: in production, use a currently maintained PHP runtime and web server over HTTPS.
+PHP 5.3 does not include the built-in development server. Use Apache/XAMPP and define the variables in its `VirtualHost` as shown above. Send protected requests to the URL that maps to `validate-turnstile.php`. Syntax compatibility does not make obsolete PHP releases safe: in production, use a currently maintained PHP runtime and web server over HTTPS.
 
 ## Node.js
 
