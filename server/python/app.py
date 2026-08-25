@@ -1,3 +1,11 @@
+"""Backend validation example for cordova-plugin-turnstile.
+
+Receives a Turnstile token, validates it with Cloudflare Siteverify, and only
+then runs the protected operation. No credentials should be added here: set the
+three TURNSTILE_* environment variables and replace the marked operation.
+Plugin: https://github.com/andreszs/cordova-plugin-turnstile
+"""
+
 import os
 import re
 from typing import Any
