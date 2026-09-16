@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-turnstile",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "A Cordova plugin that runs Cloudflare Turnstile in a secure Android WebView dialog.",
   "cordova": {
     "id": "cordova-plugin-turnstile",

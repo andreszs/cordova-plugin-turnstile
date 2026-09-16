@@ -2,7 +2,7 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
         xmlns:android="http://schemas.android.com/apk/res/android"
         id="cordova-plugin-turnstile"
-        version="1.2.1">
+        version="1.2.2">
     <name>Cordova Turnstile</name>
     <description>Runs Cloudflare Turnstile in a secure Android WebView dialog without leaving the Cordova screen.</description>
     <author>Andrés Zsögön</author>

@@ -1,4 +1,4 @@
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/andreszs/cordova-plugin-turnstile) ![GitHub top language](https://img.shields.io/github/languages/top/andreszs/cordova-plugin-turnstile) ![GitHub](https://img.shields.io/github/license/andreszs/cordova-plugin-turnstile) ![GitHub last commit](https://img.shields.io/github/last-commit/andreszs/cordova-plugin-turnstile)
+![npm downloads](https://img.shields.io/npm/dt/cordova-plugin-turnstile) ![npm version](https://img.shields.io/npm/v/cordova-plugin-turnstile) ![GitHub package.json version](https://img.shields.io/github/package-json/v/andreszs/cordova-plugin-turnstile?color=FF6D00&label=main&logo=github) ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/andreszs/cordova-plugin-turnstile) ![GitHub top language](https://img.shields.io/github/languages/top/andreszs/cordova-plugin-turnstile) ![GitHub license](https://img.shields.io/github/license/andreszs/cordova-plugin-turnstile) ![GitHub last commit](https://img.shields.io/github/last-commit/andreszs/cordova-plugin-turnstile)
 
 # cordova-plugin-turnstile
 
@@ -18,16 +18,16 @@ The optional backend examples have their own runtime requirements: PHP 5.3 or la
 
 ## Installation
 
-Install directly from GitHub:
-
-```shell
-cordova plugin add https://github.com/andreszs/cordova-plugin-turnstile.git
-```
-
-When the package is available from npm, it can also be installed with:
+Install from npm:
 
 ```shell
 cordova plugin add cordova-plugin-turnstile
+```
+
+Or install directly from GitHub:
+
+```shell
+cordova plugin add https://github.com/andreszs/cordova-plugin-turnstile.git
 ```
 
 ## Host the verification page
