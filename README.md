@@ -1,10 +1,22 @@
-![npm downloads](https://img.shields.io/npm/dt/cordova-plugin-turnstile) ![npm version](https://img.shields.io/npm/v/cordova-plugin-turnstile) ![GitHub package.json version](https://img.shields.io/github/package-json/v/andreszs/cordova-plugin-turnstile?color=FF6D00&label=main&logo=github) ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/andreszs/cordova-plugin-turnstile) ![GitHub top language](https://img.shields.io/github/languages/top/andreszs/cordova-plugin-turnstile) ![GitHub license](https://img.shields.io/github/license/andreszs/cordova-plugin-turnstile) ![GitHub last commit](https://img.shields.io/github/last-commit/andreszs/cordova-plugin-turnstile)
+![npm downloads](https://img.shields.io/npm/dt/cordova-plugin-turnstile) ![npm version](https://img.shields.io/npm/v/cordova-plugin-turnstile) ![GitHub package.json version](https://img.shields.io/github/package-json/v/andreszs/cordova-plugin-turnstile?color=FF6D00&label=main&logo=github) [![Android demo](https://img.shields.io/badge/demo-Android-2ea44f?logo=apachecordova&logoColor=white)](https://github.com/andreszs/cordova-plugin-demos/tree/main/com.andreszs.turnstile.demo) ![GitHub license](https://img.shields.io/github/license/andreszs/cordova-plugin-turnstile)
 
 # cordova-plugin-turnstile
 
 A Cordova plugin that runs [Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/) in a secure Android WebView dialog without navigating away from the Cordova screen that requested verification.
 
 The host application provides an HTTPS page that renders the Turnstile widget. During verification, the plugin restricts WebView navigation to that page's host and `challenges.cloudflare.com`, rejects SSL errors and mixed content, and returns only the ephemeral Turnstile token to JavaScript.
+
+## Table of contents
+
+- [Platform support](#platform-support)
+- [Installation](#installation)
+- [Host the verification page](#host-the-verification-page)
+- [Usage](#usage)
+- [Error codes](#error-codes)
+- [Server-side validation](#server-side-validation)
+- [Security notes](#security-notes)
+- [License](#license)
+- [Demo application](#demo-application)
 
 ## Platform support
 
